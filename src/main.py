@@ -15,31 +15,24 @@ PM_REMOVE=1
 
 
 
-ULONG_PTR=ctypes.POINTER(ctypes.wintypes.DWORD)
-LRESULT=ctypes.c_int
-LowLevelKeyboardProc=ctypes.WINFUNCTYPE(ctypes.c_int,ctypes.c_int,ctypes.wintypes.WPARAM,ctypes.wintypes.LPARAM)
-
-
-
-class KBDLLHOOKSTRUCT(ctypes.Structure):
-	_fields_=[("vk_code",ctypes.wintypes.DWORD),("scan_code",ctypes.wintypes.DWORD),("flags",ctypes.wintypes.DWORD),("time",ctypes.c_int),("dwExtraInfo",ULONG_PTR)]
-
-
-
+ctypes.wintypes.ULONG_PTR=ctypes.POINTER(ctypes.wintypes.DWORD)
+ctypes.wintypes.LRESULT=ctypes.c_int
+ctypes.wintypes.LowLevelKeyboardProc=ctypes.WINFUNCTYPE(ctypes.c_int,ctypes.c_int,ctypes.wintypes.WPARAM,ctypes.wintypes.LPARAM)
+ctypes.wintypes.KBDLLHOOKSTRUCT=type("KBDLLHOOKSTRUCT",(ctypes.Structure,),{"_fields_":[("vk_code",ctypes.wintypes.DWORD),("scan_code",ctypes.wintypes.DWORD),("flags",ctypes.wintypes.DWORD),("time",ctypes.c_int),("dwExtraInfo",ctypes.wintypes.ULONG_PTR)]})
 ctypes.windll.kernel32.GetModuleHandleW.argtypes=(ctypes.wintypes.LPCWSTR,)
 ctypes.windll.kernel32.GetModuleHandleW.restype=ctypes.wintypes.HMODULE
-ctypes.windll.user32.SetWindowsHookExW.argtypes=(ctypes.c_int,LowLevelKeyboardProc,ctypes.wintypes.HINSTANCE,ctypes.wintypes.DWORD)
-ctypes.windll.user32.SetWindowsHookExW.restype=ctypes.wintypes.HHOOK
 ctypes.windll.user32.CallNextHookEx.argtypes=(ctypes.POINTER(ctypes.wintypes.HHOOK),ctypes.c_int,ctypes.wintypes.WPARAM,ctypes.wintypes.LPARAM)
-ctypes.windll.user32.CallNextHookEx.restype=LRESULT
-ctypes.windll.user32.UnhookWindowsHookEx.argtypes=(ctypes.wintypes.HHOOK,)
-ctypes.windll.user32.UnhookWindowsHookEx.restype=ctypes.wintypes.BOOL
+ctypes.windll.user32.CallNextHookEx.restype=ctypes.wintypes.LRESULT
+ctypes.windll.user32.DispatchMessageW.argtypes=(ctypes.wintypes.LPMSG,)
+ctypes.windll.user32.DispatchMessageW.restype=ctypes.wintypes.LRESULT
 ctypes.windll.user32.PeekMessageW.argtypes=(ctypes.wintypes.LPMSG,ctypes.wintypes.HWND,ctypes.c_uint,ctypes.c_uint,ctypes.c_uint)
 ctypes.windll.user32.PeekMessageW.restype=ctypes.wintypes.BOOL
+ctypes.windll.user32.SetWindowsHookExW.argtypes=(ctypes.c_int,ctypes.wintypes.LowLevelKeyboardProc,ctypes.wintypes.HINSTANCE,ctypes.wintypes.DWORD)
+ctypes.windll.user32.SetWindowsHookExW.restype=ctypes.wintypes.HHOOK
 ctypes.windll.user32.TranslateMessage.argtypes=(ctypes.wintypes.LPMSG,)
 ctypes.windll.user32.TranslateMessage.restype=ctypes.wintypes.BOOL
-ctypes.windll.user32.DispatchMessageW.argtypes=(ctypes.wintypes.LPMSG,)
-ctypes.windll.user32.DispatchMessageW.restype=LRESULT
+ctypes.windll.user32.UnhookWindowsHookEx.argtypes=(ctypes.wintypes.HHOOK,)
+ctypes.windll.user32.UnhookWindowsHookEx.restype=ctypes.wintypes.BOOL
 
 
 
@@ -53,7 +46,7 @@ NUMPAD_VK=(0x60,0x61,0x62,0x63,0x64,0x65,0x66,0x67,0x68,0x69,0x6a,0x6b,0x6c,0x6d
 def register_hook(cb):
 	def _handle(c,wp,lp):
 		try:
-			dt=ctypes.cast(lp,ctypes.POINTER(KBDLLHOOKSTRUCT)).contents
+			dt=ctypes.cast(lp,ctypes.POINTER(ctypes.wintypes.KBDLLHOOKSTRUCT)).contents
 			if (dt.vk_code!=VK_PACKET and dt.flags&(LLKHF_INJECTED|LLKHF_ALTDOWN)!=LLKHF_INJECTED|LLKHF_ALTDOWN):
 				if (dt.vk_code==0xa5 and _handle._ig_alt==True):
 					_handle._ig_alt=False
@@ -66,7 +59,7 @@ def register_hook(cb):
 			traceback.print_exception(None,e,e.__traceback__)
 		return ctypes.windll.user32.CallNextHookEx(None,c,wp,lp)
 	_handle._ig_alt=False
-	kb_cb=LowLevelKeyboardProc(_handle)
+	kb_cb=ctypes.wintypes.LowLevelKeyboardProc(_handle)
 	ctypes.windll.user32.SetWindowsHookExW(WH_KEYBOARD_LL,kb_cb,ctypes.windll.kernel32.GetModuleHandleW(None),ctypes.wintypes.DWORD(0))
 	atexit.register(ctypes.windll.user32.UnhookWindowsHookEx,kb_cb)
 
