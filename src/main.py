@@ -65,7 +65,7 @@ def register_hook(cb):
 
 
 
-register_hook(lambda k,vk,np,st:(print(k,vk,np,st),True)[1])
+register_hook(lambda k,vk,np,st:(print(f"key={k}, vk={vk}, is_numpad={np}, down={st}"),True)[1])
 msg=ctypes.wintypes.LPMSG()
 while (True):
 	if (ctypes.windll.user32.PeekMessageW(msg,None,0,0,PM_REMOVE)!=0):
